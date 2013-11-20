@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"github.com/Sevki/sandman"
 )
 
 // Html renderer configuration options.
@@ -38,6 +39,7 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
+	HTML_RENDER_WITH_PYGMENTS                   // use pygments to render
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -200,11 +202,16 @@ func (options *Html) HRule(out *bytes.Buffer) {
 	out.WriteString(options.closeTag)
 }
 
+// If pygments is selected it overrides github blockcode since its not necessary
 func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
-	if options.flags&HTML_GITHUB_BLOCKCODE != 0 {
-		options.BlockCodeGithub(out, text, lang)
+	if options.flags&HTML_RENDER_WITH_PYGMENTS != 0 {
+		options.BlockCodePygments(out, text, lang)
 	} else {
-		options.BlockCodeNormal(out, text, lang)
+		if options.flags&HTML_GITHUB_BLOCKCODE != 0 {
+			options.BlockCodeGithub(out, text, lang)
+		} else {
+			options.BlockCodeNormal(out, text, lang)
+		}
 	}
 }
 
@@ -280,6 +287,16 @@ func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string
 
 	attrEscape(out, text)
 	out.WriteString("</code></pre>\n")
+}
+
+// Code highlighting with pygments. libpyhton and Pyhon.h needs to be present.
+func (options *Html) BlockCodePygments(out *bytes.Buffer, text []byte, lang string) {
+	if lang != "" {
+		out.WriteString(sandman.Highlight(string(text), lang, "html" ))
+	} else {
+		out.WriteString(sandman.Highlight(string(text), "text", "html" ))
+	}
+
 }
 
 func (options *Html) BlockQuote(out *bytes.Buffer, text []byte) {
