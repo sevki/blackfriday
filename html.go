@@ -3,6 +3,7 @@
 // Available at http://github.com/russross/blackfriday
 //
 // Copyright © 2011 Russ Ross <russ@russross.com>.
+// Copyright © 2013 Sevki Hasirci <s@sevki.org>.
 // Distributed under the Simplified BSD License.
 // See README.md for details.
 //
@@ -20,7 +21,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"github.com/Sevki/sandman"
+	"github.com/sevki/sandman"
 )
 
 // Html renderer configuration options.
