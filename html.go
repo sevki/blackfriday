@@ -19,9 +19,9 @@ package blackfriday
 import (
 	"bytes"
 	"fmt"
+	"github.com/sevki/sandman"
 	"strconv"
 	"strings"
-	"github.com/sevki/sandman"
 )
 
 // Html renderer configuration options.
@@ -40,7 +40,7 @@ const (
 	HTML_USE_SMARTYPANTS                      // enable smart punctuation substitutions
 	HTML_SMARTYPANTS_FRACTIONS                // enable smart fractions (with HTML_USE_SMARTYPANTS)
 	HTML_SMARTYPANTS_LATEX_DASHES             // enable LaTeX-style dashes (with HTML_USE_SMARTYPANTS)
-	HTML_RENDER_WITH_PYGMENTS                   // use pygments to render
+	HTML_RENDER_WITH_PYGMENTS                 // use pygments to render
 )
 
 // Html is a type that implements the Renderer interface for HTML output.
@@ -206,10 +206,10 @@ func (options *Html) HRule(out *bytes.Buffer) {
 // If pygments is selected it overrides github blockcode since its not necessary
 func (options *Html) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	if options.flags&HTML_RENDER_WITH_PYGMENTS != 0 {
-		options.BlockCodePygments(out, text, lang)
+		options.BlockCodePygments(out, text, lang, false)
 	} else {
 		if options.flags&HTML_GITHUB_BLOCKCODE != 0 {
-			options.BlockCodeGithub(out, text, lang)
+			options.BlockCodeGithub(out, text, lang, false)
 		} else {
 			options.BlockCodeNormal(out, text, lang)
 		}
@@ -263,7 +263,7 @@ func (options *Html) BlockCodeNormal(out *bytes.Buffer, text []byte, lang string
 // Note that we only generate HTML for the first specifier.
 // E.g.
 //              ~~~~ {.python .numbered}        =>      <pre lang="python"><code>
-func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string) {
+func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string, linenos bool) {
 	doubleSpace(out)
 
 	// parse out the language name
@@ -291,11 +291,12 @@ func (options *Html) BlockCodeGithub(out *bytes.Buffer, text []byte, lang string
 }
 
 // Code highlighting with pygments. libpyhton and Pyhon.h needs to be present.
-func (options *Html) BlockCodePygments(out *bytes.Buffer, text []byte, lang string) {
+func (options *Html) BlockCodePygments(out *bytes.Buffer, text []byte, lang string, linenos bool) {
+
 	if lang != "" {
-		out.WriteString(sandman.Highlight(string(text), lang, "html" ))
+		out.WriteString(sandman.Highlight(string(text), lang, linenos))
 	} else {
-		out.WriteString(sandman.Highlight(string(text), "text", "html" ))
+		out.WriteString(sandman.Highlight(string(text), "text", linenos))
 	}
 
 }
